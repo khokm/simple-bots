@@ -1,0 +1,11 @@
+{
+  "name": "vk-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/khok/vk-bot",
+  "author": "Maxim Khokhryakov <khokhryakovmax@yandex.ru>",
+  "license": "MIT",
+  "dependencies": {
+    "node-vk-bot-api": "^2.4.9"
+  }
+}
