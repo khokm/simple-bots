@@ -6,6 +6,7 @@
   "author": "Maxim Khokhryakov <khokhryakovmax@yandex.ru>",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.5.3",
     "node-vk-bot-api": "^2.4.9"
   }
 }
