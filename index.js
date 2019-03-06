@@ -21,7 +21,7 @@ class VkBot {
 	waitAnswer (uid) {
 		return new Promise((resolve, reject) => {
 			this.waiting[uid] = (msg) => { this.stopWaitAnswer(uid); resolve(msg); };
-			this.reset[uid] = (code) => {this.stopWaitAnswer(uid); reject(code || 'reset')};
+			this.reset[uid] = (code) => {this.stopWaitAnswer(uid); reject(code || 'reject')};
 		});
 	}
 
@@ -52,14 +52,7 @@ class VkBot {
 
 	//Установить обработчик текста не-команд.
 	default(defaultHandler) {
-		this.bot.on(ctx => {
-			const uid = ctx.message.user_id;
-			const msg = ctx.message.body;
-
-			//Если мы не в режиме ожидания ответа, то передаем текст обработчику по-умолчанию.
-			if(!this.resolveAnswer(uid, msg))
-				defaultHandler(this.makeDialog(ctx), msg);
-		});
+		this.defaultHandler = defaultHandler;
 	}
 
 	makeDialog(ctx) {
@@ -105,6 +98,15 @@ class VkBot {
 	}
 
 	run() {
+		this.bot.on(ctx => {
+			const uid = ctx.message.user_id;
+			const msg = ctx.message.body;
+
+			//Если мы не в режиме ожидания ответа, то передаем текст обработчику по-умолчанию.
+			if(!this.resolveAnswer(uid, msg) && this.defaultHandler)
+				this.defaultHandler(this.makeDialog(ctx), msg);
+		});
+
 		this.bot.startPolling();
 	}
 }
