@@ -1,14 +1,10 @@
-const VkApi = require('node-vk-bot-api');
-const Markup = require('node-vk-bot-api/lib/markup');
-const {sendVkFile} = require('./send_vk_file');
+const easyvk = require('easyvk');
 
 class VkBot {
-	constructor(token) {
+	constructor() {
 		this.waiting = {};
 		this.reset = {};
-		this.token = token;
-
-		this.bot = new VkApi(token);
+		this.commands = {};
 	}
 
 	//Прекратить ожидать ответ от uid.
@@ -19,9 +15,11 @@ class VkBot {
 
 	//Войти в режим оиждания ответа от uid.
 	waitAnswer (uid) {
+		if(this.waiting[uid])
+			this.rejectAnswer(uid, new Error('We already wait for answer'));
 		return new Promise((resolve, reject) => {
 			this.waiting[uid] = (msg) => { this.stopWaitAnswer(uid); resolve(msg); };
-			this.reset[uid] = (code) => {this.stopWaitAnswer(uid); reject(code || 'reject')};
+			this.reset[uid] = (code) => {this.stopWaitAnswer(uid); reject(code)};
 		});
 	}
 
@@ -45,9 +43,7 @@ class VkBot {
 
 	//Установить обработчик команды
 	command(command, handler) {
-		this.bot.command(command, (ctx) => {
- 			handler(this.makeDialog(ctx));
-		});
+		this.commands[command] = handler;
 	}
 
 	//Установить обработчик текста не-команд.
@@ -55,59 +51,112 @@ class VkBot {
 		this.defaultHandler = defaultHandler;
 	}
 
-	makeDialog(ctx) {
+	makeDialog(peer_id) {
+
 		const parent = this;
-		const uid = ctx.message.user_id;
 
 		return {
 			 async input (text) {
 				if(text)
-					ctx.reply("Введи: " + text);
-				return await parent.waitAnswer(uid);
+					this.output(text);
+				return await parent.waitAnswer(peer_id);
 			},
-			async askOption(text, options) {
-				ctx.reply('Выбери: ' + text, null,
-					Markup.keyboard(options).oneTime());
-				return await parent.waitAnswer(uid);
+			async askOption(message, options) {
+
+				if(options[0].constructor !== Array)
+					options = [options];
+
+				const buttons = options.map(opts =>
+					opts.map(opt => { return {
+						"action": {
+				          "type": "text",
+				          // "payload": "{\"button\": \"1\"}",
+				          "label": opt.label || opt
+				        },
+				        "color": opt.color || "default"
+					}})
+				);
+
+				const keyboard = JSON.stringify({"one_time": true, buttons});
+
+				parent.sendMessage({
+					peer_id,
+					message,
+					keyboard
+	  			});
+
+				return await parent.waitAnswer(peer_id);
 			},
-			output(text, doc) {
-				ctx.reply(text, doc);
+			output(message, attachment) {
+				if(attachment instanceof Array)
+					attachment = attachment.map(el => el.toString()).join(',');
+				parent.sendMessage({
+					peer_id,
+					message,
+					attachment
+	  			});
 			},
 
 			reject(code) {
-				return parent.rejectAnswer(uid, code);
+				return parent.rejectAnswer(peer_id, code);
 			},
-			async sendFile(text, filePath) {
-				return await sendVkFile(ctx, text, filePath, parent.token);
+			async uploadFile (filePath){
+				return await parent.uploadFile(peer_id, filePath);
 			},
+
 			getId() {
-				return uid;
-			},
-			_token() {
-				return parent.token;
+				return peer_id;
 			}
 		};
 	}
 
-	setMessages(messages) {
-		this.messages = messages;
-	}
-
 	cleanCommands() {
-		this.bot.middlewares = [];
+		this.commands = {};
 	}
 
-	run() {
-		this.bot.on(ctx => {
-			const uid = ctx.message.user_id;
-			const msg = ctx.message.body;
+	async long_poll(group_id, access_token) {
+		const vk = await easyvk({access_token});
 
-			//Если мы не в режиме ожидания ответа, то передаем текст обработчику по-умолчанию.
-			if(!this.resolveAnswer(uid, msg) && this.defaultHandler)
-				this.defaultHandler(this.makeDialog(ctx), msg);
+		const {connection} = await vk.bots.longpoll.connect({
+			forGetLongPollServer: {
+				group_id
+			},
+			forLongPollServer: {
+				wait: "15" 
+			} 
 		});
 
-		this.bot.startPolling();
+		this.sendMessage = (msg) => vk.call('messages.send', msg);
+
+		this.uploadFile = async (peer_id, filePath) => {
+			const {url} = await vk.uploader.getUploadURL('docs.getMessagesUploadServer',
+				{peer_id}, false);
+		  	const {vkr} = await vk.uploader.uploadFile(url, filePath, 'file', {});
+	  		const fileData = await vk.call('docs.save', {file:vkr.response.file});
+		  	const {id, owner_id} = fileData.vkr[0];
+		  	return `doc${owner_id}_${id}`;
+		};
+
+		connection.on('message_new', (msg) => {
+
+			const {user_id, body} = msg;
+
+			const command = this.commands[body];
+
+			if(!command && this.resolveAnswer(user_id, body))
+				return;
+
+			const dialog = this.makeDialog(user_id);
+
+			if(command)
+				command(dialog);
+			else if(this.defaultHandler)
+				this.defaultHandler(dialog, body);
+		});
+
+		// connection.debug(({type, data}) => {
+		// 	console.log(type, data)
+		// })
 	}
 }
 
