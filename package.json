@@ -1,8 +1,8 @@
 {
-  "name": "vk-bot",
+  "name": "simple-vk",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/khok/vk-bot",
+  "repository": "https://github.com/khok/simple-vk",
   "author": "Maxim Khokhryakov <khokhryakovmax@yandex.ru>",
   "license": "MIT",
   "dependencies": {
