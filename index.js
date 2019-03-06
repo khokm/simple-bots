@@ -1,7 +1,6 @@
 const VkApi = require('node-vk-bot-api');
 const Markup = require('node-vk-bot-api/lib/markup');
 const {sendVkFile} = require('./send_vk_file');
-const {formatMsg} = require('../helpers');
 
 class VkBot {
 	constructor(token) {
@@ -80,9 +79,6 @@ class VkBot {
 			},
 			output(text, doc) {
 				ctx.reply(text, doc);
-			},
-			message(code, args) {
-				ctx.reply(formatMsg(parent.messages, code, args));
 			},
 
 			reject(code) {
