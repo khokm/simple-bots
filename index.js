@@ -104,6 +104,11 @@ class VkBot {
 				return await parent.uploadFile(peer_id, filePath);
 			},
 
+			async custom(method, params) {
+				const {vkr} = await parent.customCommand(method, params);
+				return vkr[0];
+			},
+
 			getId() {
 				return peer_id;
 			}
@@ -127,6 +132,7 @@ class VkBot {
 		});
 
 		this.sendMessage = (msg) => vk.post('messages.send', msg);
+		this.customCommand = (command, params) => vk.call(command, params);
 
 		this.uploadFile = async (peer_id, filePath) => {
 			const {url} = await vk.uploader.getUploadURL('docs.getMessagesUploadServer',
