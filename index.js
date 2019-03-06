@@ -56,9 +56,9 @@ class VkBot {
 		const parent = this;
 
 		return {
-			 async input (text) {
+		 	async input (text) {
 				if(text)
-					this.output(text);
+					await this.output(text);
 				return await parent.waitAnswer(peer_id);
 			},
 			async askOption(message, options) {
@@ -79,7 +79,7 @@ class VkBot {
 
 				const keyboard = JSON.stringify({"one_time": true, buttons});
 
-				parent.sendMessage({
+				await parent.sendMessage({
 					peer_id,
 					message,
 					keyboard
@@ -87,10 +87,10 @@ class VkBot {
 
 				return await parent.waitAnswer(peer_id);
 			},
-			output(message, attachment) {
+			async output(message, attachment) {
 				if(attachment instanceof Array)
 					attachment = attachment.map(el => el.toString()).join(',');
-				parent.sendMessage({
+				await parent.sendMessage({
 					peer_id,
 					message,
 					attachment
