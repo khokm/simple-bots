@@ -126,7 +126,7 @@ class VkBot {
 			} 
 		});
 
-		this.sendMessage = (msg) => vk.call('messages.send', msg);
+		this.sendMessage = (msg) => vk.post('messages.send', msg);
 
 		this.uploadFile = async (peer_id, filePath) => {
 			const {url} = await vk.uploader.getUploadURL('docs.getMessagesUploadServer',
