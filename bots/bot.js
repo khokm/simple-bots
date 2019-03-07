@@ -54,13 +54,24 @@ class Bot {
 		this.defaultHandler = defaultHandler;
 	}
 
-	handleText(uid, text) {
+	setBotPrefix(prefix) {
+		this.botPrefix = prefix;
+	}
+
+	handleText(uid, text, conversation, mentioned) {
+
+		if(conversation && !mentioned)
+			if(text.toLowerCase().startsWith(this.botPrefix))
+				text = text.substring(this.botPrefix.length, text.length).trim();
+			else
+				return;
+
 		const command = this.commands[text];
 
 		if(!command && this.resolveAnswer(uid, text))
 			return;
 
-		const dialog = this.makeDialog(uid);
+		const dialog = this.makeDialog(uid, conversation, mentioned);
 
 		if(command)
 			command(dialog);
@@ -68,7 +79,7 @@ class Bot {
 			this.defaultHandler(dialog, text);
 	}
 
-	makeDialog(uid) {
+	makeDialog(uid, conversation, mentioned) {
 
 		const bot = this;
 
@@ -99,7 +110,8 @@ class Bot {
 
 			getId() {
 				return uid;
-			}
+			},
+			conversation, mentioned
 		};
 	}
 

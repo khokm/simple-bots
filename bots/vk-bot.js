@@ -59,7 +59,7 @@ class VkBot extends Bot {
 		};
 
 		connection.on('message_new', (msg) => {
-			let peer_id, text, conversation;
+			let peer_id, text, conversation = false, mentioned = false;
 
 			if(v_api >= 5.80) {
 				peer_id = msg.peer_id;
@@ -69,15 +69,14 @@ class VkBot extends Bot {
 			else {
 				peer_id = msg.user_id;
 				text = msg.body;
-				conversation = false;
 			}
 
 			if(conversation) {
-				const replaced = text.match(/\[.*\](.*)/)[1];
-				text = replaced.trim() || text;
+				mentioned = text.match(/\[.*\](.*)/);
+				text = mentioned ? mentioned[1].trim() : text;
 			}
 			
-			this.handleText(peer_id, text);
+			this.handleText(peer_id, text, conversation, mentioned ? true : false);
 		});
 
 		// connection.debug(({type, data}) => {
