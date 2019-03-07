@@ -119,7 +119,7 @@ class VkBot {
 		this.commands = {};
 	}
 
-	async long_poll(group_id, access_token) {
+	async long_poll(group_id, access_token, v_api = 5.80) {
 		const vk = await easyvk({access_token});
 
 		const {connection} = await vk.bots.longpoll.connect({
@@ -145,19 +145,28 @@ class VkBot {
 
 		connection.on('message_new', (msg) => {
 
-			const {user_id, body} = msg;
+			let peer_id, text;
 
-			const command = this.commands[body];
+			if(v_api >= 5.80) {
+				peer_id = msg.peer_id;
+				text = msg.text;
+			}
+			else {
+				peer_id = msg.user_id;
+				text = msg.body;
+			}
 
-			if(!command && this.resolveAnswer(user_id, body))
+			const command = this.commands[text];
+
+			if(!command && this.resolveAnswer(peer_id, text))
 				return;
 
-			const dialog = this.makeDialog(user_id);
+			const dialog = this.makeDialog(peer_id);
 
 			if(command)
 				command(dialog);
 			else if(this.defaultHandler)
-				this.defaultHandler(dialog, body);
+				this.defaultHandler(dialog, text);
 		});
 
 		// connection.debug(({type, data}) => {
