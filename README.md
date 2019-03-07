@@ -83,7 +83,8 @@ bot.default(async (dialog, text) => {
 bot.long_poll(group, token, v_api);
 console.log('Бот запущен!');
 ```
-Запустите бота: `node test.js`.
+Запустите бота: `node test.js`. Подождите пару секунд, и, если не появится ошибка,
+попробуйте отправлять ему через ВК команды */reset*, */hello* или что-нибудь еще.
 
 ### Описание API бота
 
