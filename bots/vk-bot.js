@@ -27,9 +27,9 @@ class VkBot extends Bot {
 	}
 
 	async sendMessage(peer_id, message, attachment){
-	if(attachment instanceof Array)
-		attachment = attachment.map(el => el.toString()).join(',');
-		this.customCommand('messages.send', {
+		if(attachment instanceof Array)
+			attachment = attachment.map(el => el.toString()).join(',');
+		await this.customCommand('messages.send', {
 			peer_id,
 			message,
 			attachment
@@ -48,19 +48,17 @@ class VkBot extends Bot {
 			} 
 		});
 
-		this.customCommand = async (command, params) => (await vk.call(command, params)).vkr[0];
+		this.customCommand = async (command, params) => (await vk.post(command, params)).vkr[0];
 
 		this.uploadFile = async (peer_id, filePath) => {
 			const {url} = await vk.uploader.getUploadURL('docs.getMessagesUploadServer',
 				{peer_id}, false);
 		  	const {vkr} = await vk.uploader.uploadFile(url, filePath, 'file', {});
-	  		const fileData = await vk.call('docs.save', {file:vkr.response.file});
-		  	const {id, owner_id} = fileData.vkr[0];
+	  		const {id, owner_id} = await this.customCommand('docs.save', {file:vkr.response.file});
 		  	return `doc${owner_id}_${id}`;
 		};
 
 		connection.on('message_new', (msg) => {
-
 			let peer_id, text;
 
 			if(v_api >= 5.80) {
@@ -72,17 +70,7 @@ class VkBot extends Bot {
 				text = msg.body;
 			}
 
-			const command = this.commands[text];
-
-			if(!command && this.resolveAnswer(peer_id, text))
-				return;
-
-			const dialog = this.makeDialog(peer_id);
-
-			if(command)
-				command(dialog);
-			else if(this.defaultHandler)
-				this.defaultHandler(dialog, text);
+			this.handleText(peer_id, text);
 		});
 
 		// connection.debug(({type, data}) => {

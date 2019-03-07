@@ -1,8 +1,9 @@
 class Bot {
-	constructor() {
+	constructor(resolveUndefined) {
 		this.waiting = {};
 		this.reset = {};
 		this.commands = {};
+		this.resolveUndefined = resolveUndefined;
 	}
 
 	//Прекратить ожидать ответ от uid.
@@ -13,11 +14,15 @@ class Bot {
 
 	//Войти в режим оиждания ответа от uid.
 	waitAnswer (uid) {
-		if(this.waiting[uid])
-			this.rejectAnswer(uid, new Error('We already wait for answer'));
+		if(!this.resolveUndefined && this.waiting[uid])
+			throw new Error('We already wait for answer');
+
 		return new Promise((resolve, reject) => {
 			this.waiting[uid] = (msg) => { this.stopWaitAnswer(uid); resolve(msg); };
-			this.reset[uid] = (code) => {this.stopWaitAnswer(uid); reject(code)};
+			this.reset[uid] = (code) => {
+				this.stopWaitAnswer(uid);
+				this.resolveUndefined ? resolve(undefined) :
+					reject(code || new Error('Reject code not specified'))};
 		});
 	}
 
@@ -49,6 +54,20 @@ class Bot {
 		this.defaultHandler = defaultHandler;
 	}
 
+	handleText(uid, text) {
+		const command = this.commands[text];
+
+		if(!command && this.resolveAnswer(uid, text))
+			return;
+
+		const dialog = this.makeDialog(uid);
+
+		if(command)
+			command(dialog);
+		else if(this.defaultHandler)
+			this.defaultHandler(dialog, text);
+	}
+
 	makeDialog(uid) {
 
 		const bot = this;
@@ -64,7 +83,7 @@ class Bot {
 				return await bot.waitAnswer(uid);
 			},
 			async output(message, attachment) {
-				bot.sendMessage(uid, message, attachment)
+				await bot.sendMessage(uid, message, attachment)
 			},
 
 			reject(code) {

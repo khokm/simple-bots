@@ -1,14 +1,14 @@
-# simple-vk
+# simple-bots
 Небольшая надстройка над [easyvk](https://github.com/ciricc/easyvk), специально для создания чат-ботов.
 
 ### Подключение библиотеки
 Прежде всего, у вас должны быть установлены [NodeJs](https://nodejs.org), [Yarn](https://yarnpkg.com/lang/en/)
 и [Git](https://git-scm.com/downloads).
 
-Подключите simple-vk как зависимость к проекту или создайте пустой каталог и выполните команду:
+Подключите simple-bots как зависимость к проекту или создайте пустой каталог и выполните команду:
 
 ```
-yarn add https://github.com/khok/simple-vk
+yarn add https://github.com/khok/simple-bots
 ```
 
 ### Настройки со стороны ВК
@@ -26,37 +26,34 @@ yarn add https://github.com/khok/simple-vk
 Создайте файл *test.js* следующего содержания:
 
 ```javascript
-const VkBot = require('simple-vk')
+const {VkBot} = require('simple-bots');
 const path = require('path');
 
 const group = 178837545; //id группы бота
 const token = '914wrwefdsu23u4doiugsdpoiuwe242fwefwdrwe'; //Ключ бота
 const v_api = 5.80; //Версия Long-Poll API.
 
-
-const bot = new VkBot();
+//указываем параметр resolveUndefined как true.
+// В этом случае, если мы попытаемся
+const bot = new VkBot(true);
 
 //Объявляем команду
 bot.command('/reset', async (dialog) => {
     //Сбрасываем ожидание ответа от пользователя.
-    if(!dialog.reject(new Error('Сброс ожидания')))
+    if(!dialog.reject())
         dialog.output(`Используется только при ожидании ответа`);
 });
 
 bot.command('/hello', async (dialog) => {
-    try{
-        //Ожидаем ответа от пользователя.
-        const answer = await dialog.input('Введите что нибудь');
+    //Ожидаем ответа от пользователя.
+    const answer = await dialog.input('Введите что нибудь');
+    if(answer != undefined)
         dialog.output('Вы ввели: ' + answer);
-    }
-    //Перехватываем исключение, выброшенное в /reset
-    catch(e) {
-        dialog.output(e.message);
-    }
 });
 
 //Если бот не определил команду, он использует обработчик по умолчанию.
 bot.default(async (dialog, text) => {
+
     await dialog.output(`Я не знаю, что такое ${text}`);
 
     //Кнопки будут в два ряда, т.е:
@@ -68,16 +65,15 @@ bot.default(async (dialog, text) => {
             [{label:'Третья кнопка', color:"positive"}]
             ];
 
-    try{
-        const answer = await dialog.askOption('Выбери кнопку', btns);
+    const answer = await dialog.askOption('Выбери кнопку', btns);
 
-        if(btns.some(rows => rows.some(btn => btn == answer || btn.label == answer)))
-            dialog.output(`Спасибо, что выбрали ${answer}`);
-        else
-            dialog.output(`Нет варианта ${answer}`);
-    } catch (e) {
-        dialog.output(e.message);
-    }
+    if(answer == undefined)
+        return;
+
+    if(btns.some(rows => rows.some(btn => btn == answer || btn.label == answer)))
+        dialog.output(`Спасибо, что выбрали ${answer}`);
+    else
+        dialog.output(`Нет варианта ${answer}`);
 });
 
 bot.long_poll(group, token, v_api);
