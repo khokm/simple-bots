@@ -22,8 +22,28 @@ yarn add https://github.com/khok/simple-bots
  выберите Входящие сообщения.
 
 ### Пример бота
-
 Создайте файл *test.js* следующего содержания:
+
+```javascript
+const {VkBot} = require('simple-bots');
+
+const group = 178837545; //id группы бота
+const token = '914wrwefdsu23u4doiugsdpoiuwe242fwefwdrwe'; //Ключ бота
+const v_api = 5.80; //Версия Long-Poll API.
+
+const bot = new VkBot();
+
+bot.default(async (dialog, text) => {
+    const answer = await dialog.input('Введите что нибудь');
+    dialog.output(`Вы написали ${text}, а ответили ${answer}`);
+});
+
+bot.long_poll(group, token, v_api);
+```
+
+Запустите бота командой `node app.js`. Попробуйте написать ему что-нибудь ЛС.
+
+### Более компексный пример
 
 ```javascript
 const {VkBot} = require('simple-bots');
@@ -34,7 +54,8 @@ const token = '914wrwefdsu23u4doiugsdpoiuwe242fwefwdrwe'; //Ключ бота
 const v_api = 5.80; //Версия Long-Poll API.
 
 //указываем параметр resolveUndefined как true.
-// В этом случае, если мы попытаемся
+//Когда он true, то при вызове dialog.reject функция, ожидающая ответа, вернет undefined.
+//Если он false, то она генерирует исключение, указаннное с параметрах dialog.reject.
 const bot = new VkBot(true);
 
 //Объявляем команду
