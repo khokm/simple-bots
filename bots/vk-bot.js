@@ -37,7 +37,10 @@ class VkBot extends Bot {
 	}
 
 	async long_poll(group_id, access_token, v_api = 5.80) {
-		const vk = await easyvk({access_token});
+		const vk = await easyvk({
+			access_token,
+			authType: easyvk.GROUP_AUTH_TYPE
+		});
 
 		const {connection} = await vk.bots.longpoll.connect({
 			forGetLongPollServer: {
