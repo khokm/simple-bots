@@ -61,6 +61,14 @@ class VkBot extends Bot {
 		  	return `doc${owner_id}_${id}`;
 		};
 
+		connection.on('error', async () => {
+			connection.close();
+			await this.long_poll(group_id, access_token, v_api);
+			console.log("Реконнект в " + new Date());
+		});
+		connection.on('failure', console.error);
+		connection.on('reconnectError', console.error);
+
 		connection.on('message_new', (msg) => {
 			let peer_id, text, conversation = false, mentioned = false;
 
