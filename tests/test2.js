@@ -2,7 +2,6 @@ const { VkBot } = require("..");
 const { readFileSync } = require("fs");
 
 (async function() {
-  console.log(VkBot);
   const { group_id, token } = JSON.parse(readFileSync("tests/data.json"));
   const v_api = 5.8; //Версия Long-Poll API.
 
