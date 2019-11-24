@@ -43,7 +43,10 @@ bot.default(async (dialog, text) => {
   dialog.output(`Вы написали ${text}, а ответили ${answer}`);
 });
 
-bot.vk_long_poll(group, token, v_api);
+bot
+  .vk_long_poll(group, token, v_api)
+  .then(() => console.log(`Бот запущен в ${new Date()}`));
+
 ```
 
 Запустите бота командой `node test.js`. Попробуйте написать ему что-нибудь ЛС.
@@ -52,7 +55,6 @@ bot.vk_long_poll(group, token, v_api);
 
 ```javascript
 const { VkBot } = require("simple-bots");
-const path = require("path");
 
 const group = 178837545; //id группы бота
 const token = "914wrwefdsu23u4doiugsdpoiuwe242fwefwdrwe"; //Ключ бота
@@ -98,7 +100,10 @@ bot.default(async (dialog, text) => {
   else dialog.output(`Нет варианта ${answer}`);
 });
 
-bot.vk_long_poll(group, token, v_api).then(() => console.log("Бот запущен!"));
+bot
+  .vk_long_poll(group, token, v_api)
+  .then(() => console.log(`Бот запущен в ${new Date()}`));
+
 ```
 
 Запустите бота: `node test.js`. Подождите пару секунд, и, если не появится ошибка,
