@@ -5,7 +5,13 @@
   "repository": "https://github.com/khok/simple-bots",
   "author": "Maxim Khokhryakov <khokhryakovmax@yandex.ru>",
   "license": "MIT",
+  "scripts": {
+    "test": "node tests/test.js"
+  },
   "dependencies": {
-    "easyvk": "^2.2.16"
+    "easyvk": "^2.5.11"
+  },
+  "prettier": {
+    "endOfLine": "lf"
   }
 }
