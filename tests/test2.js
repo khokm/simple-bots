@@ -20,6 +20,12 @@ const { readFileSync } = require("fs");
     if (answer !== undefined) dialog.output("Вы ввели: " + answer);
   });
 
+  bot.command("/image", async dialog => {
+    const file = await dialog.uploadFile("package.json");
+    console.log(file);
+    dialog.output(undefined, file);
+  });
+
   //Если бот не определил команду, он использует обработчик по умолчанию.
   bot.default(async (dialog, text) => {
     await dialog.output(`Я не знаю, что такое ${text}`);
