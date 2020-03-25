@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "repository": "https://github.com/khok/simple-bots",
-  "author": "Maxim Khokhryakov <khokhryakovmax@yandex.ru>",
+  "author": "Maxim Khokhryakov <khokm@ya.ru>",
   "license": "MIT",
   "scripts": {
     "test": "node tests/test.js"
   },
   "dependencies": {
-    "easyvk": "^2.5.11"
+    "easyvk": "^2.6.0"
   },
   "prettier": {
     "endOfLine": "lf"
